@@ -106,8 +106,8 @@ class Trie:
         if len(key) > 32:
             raise Exception("Max key length is 32")
 
-        if not isinstance(value, str):
-            raise Exception("Value must be string")
+        if not isinstance(value, bytes):
+            raise Exception("Value must be bytes")
 
         self.root_node = self._update(self.root_node, bin_to_nibbles(key), value)
 
