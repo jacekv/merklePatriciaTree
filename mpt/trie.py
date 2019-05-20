@@ -44,32 +44,43 @@ def pack_nibbles(nibbles: list, terminator: bool) -> bytes:
     return b
 
 
-def unpack_to_nibbles(bindata):
-    """unpack packed binary data to nibbles
-    :param bindata: binary packed from nibbles
+def unpack_to_nibbles(bin_data: bytes) -> list:
+    """
+    unpack packed binary data to nibbles
+
+    :param bin_data: binary packed from nibbles
     :return: nibbles sequence, may have a terminator
     """
-    o = bin_to_nibbles(bindata)
+    o = bin_to_nibbles(bin_data)
     flags = o[0]
-    #if flags & 2:
-    #    o.append(16)
     if flags & 1 == 1:
         o = o[1:]
     else:
         o = o[2:]
     return o
 
-def starts_with(full, part):
-    ''' test whether the items in the part is
-    the leading items of the full
-    '''
+
+def starts_with(full: list, part: list) -> bool:
+    """
+    test whether the items in the part is the leading items of the full
+
+    :param full: The list with all entries
+    :param part: List with partial content of full
+    :return: True if items of part is leading items of full
+    """
     if len(full) < len(part):
         return False
     return full[:len(part)] == part
 
 
-def is_key_value_type(node_type):
-        return node_type in [LEAF, EXTENSION]
+def is_key_value_type(node_type: int) -> bool:
+    """
+    The function checks if the given node type is a leaf or extension node
+
+    :param node_type: The node type to be checked
+    :return: True in case it is a leaf/extension node, otherwise False
+    """
+    return node_type in [LEAF, EXTENSION]
 
 
 class Trie:
@@ -80,7 +91,7 @@ class Trie:
         self.set_root_node(root_hash)
         self.db = db.DB.get_instance()
 
-    def set_root_node(self, root_hash: str):
+    def set_root_node(self, root_hash: str) -> None:
         """
         Sets the root node
 
@@ -93,7 +104,7 @@ class Trie:
         else:
             self.root_node = db.get(root_hash)
 
-    def update(self, key: bytes, value: str):
+    def update(self, key: bytes, value: str) -> None:
         """
         Takes a key/value pair and adds the value in the appropriate location in the trie
 
@@ -120,7 +131,7 @@ class Trie:
         self.root_hash = utils.sha3(rlp.encode(self.root_node))
         return self.root_hash
 
-    def _update(self, node: list, key: list, value: str) -> list:
+    def _update(self, node: list, key: list, value: bytes) -> list:
         """
         Recursive called method to update the trie with a new value with a given key
 
@@ -129,7 +140,6 @@ class Trie:
         :param value: The value to be stored in the trie
         :return: A new node
         """
-        old_node = node[:]
         node_type = self._get_node_type(node)
         # in case the root node is still blank, set it to a leaf node
         if node_type == BLANK:
@@ -148,7 +158,7 @@ class Trie:
                 node[key[0]], db_touch = self._encode_node(new_node)
             return node
 
-        elif node_type == LEAF:
+        elif node_type == LEAF or node_type == EXTENSION:
             # check if the key length is even
             even = False if ((ord(node[0][0:1]) & 0x10) == 0x10) else True
 
@@ -167,81 +177,38 @@ class Trie:
             remaining_curr_key = current_key[prefix:]
 
             if len(remaining_key) == 0 and len(remaining_curr_key) == 0:
-                # the keys are equal
-                # it is a leaf node so the value changes
-                return [node[0], value]
-            elif len(remaining_curr_key) == 0:
-                # the old key is exhausted and that's why we make a branch node. There is a value under this path
-                # and the path is being extended too. That's the reason for a branch node.
-                new_node = [BLANK_NODE] * 17
-                # save the value in the branch node
-                new_node[-1] = node[1]
-                # create a leaf node with the remaining content
-                new_node[remaining_key[0]], db_touch = self._encode_node([pack_nibbles(remaining_key[1:], True), value])
-            else:
-                # both keys have some differences, so we make a branch node
-                new_node = [BLANK_NODE] * 17
-                # saving the old path and value in a new leaf node
-                new_node[remaining_curr_key[0]], db_touch = self._encode_node(
-                    [pack_nibbles(remaining_curr_key[1:], True), node[1]])
-
-                if len(remaining_key) == 0:
-                    new_node[-1] = value
+                # both keys are equal and have the same length
+                if node_type == EXTENSION:
+                    # Since we currently have a branch node, we decode the hash to the node and go one level deeper
+                    # to update the value of the branch node
+                    new_node = self._update(self._decode_to_node(node[1]), remaining_key, value)
                 else:
+                    # Since we have currently a leaf node, we update the value :)
+                    return [node[0], value]
+            elif len(remaining_curr_key) == 0:
+                # the current key is shorter than the new one and it is exhausted
+                if node_type == EXTENSION:
+                    # we save the old node
+                    old_node = node[:]
+                    # we get the new node
+                    new_node = self._update(self._decode_to_node(node[1]), remaining_key, value)
+                    # compare and see if they are equal
+                    if old_node != new_node:
+                        # if not, delete the old node
+                        self._delete_node(old_node)
+                else:
+                    # the old key is exhausted and that's why we make a branch node. There is a value under this path
+                    # and the path is being extended too. That's the reason for a branch node.
+                    new_node = [BLANK_NODE] * 17
+                    # save the value in the branch node
+                    new_node[-1] = node[1]
+                    # create a leaf node with the remaining content
                     new_node[remaining_key[0]], db_touch = self._encode_node(
-                        [pack_nibbles(remaining_key[1:], True), value])
-            # in case there is a prefix set, because some parts of the path are equal we have to create a new extension
-            # node where the content is in
-            if prefix:
-                n, db_touch = self._encode_node(new_node)
-                new_node = [pack_nibbles(current_key[:prefix], False), n]
-                if db_touch and old_node != new_node:
-                    self._delete_node(old_node)
-            return new_node
-
-        elif node_type == EXTENSION:
-            # check if the key length is even
-            even = False if ((ord(node[0][0:1]) & 0x10) == 0x10) else True
-
-            current_key = bin_to_nibbles(node[0])
-            # we remove the encoding according to the parity
-            current_key = current_key[2:] if even else current_key[1:]
-
-            prefix = 0
-            # compare the keys
-
-            for i in range(0, min(len(current_key), len(key))):
-                if current_key[i] != key[i]:
-                    break
-                prefix += 1
-            remaining_key = key[prefix:]
-            remaining_curr_key = current_key[prefix:]
-
-            if len(remaining_key) == 0 and len(remaining_curr_key) == 0:
-                # both keys are equal, we take the hash, get the node from the db and go one deeper down the rabbit hole
-                # a lever deeper it should create a branch node :)
-                new_node = self._update(self._decode_to_node(node[1]), remaining_key, value)
-
-            elif len(remaining_curr_key) == 0:
-                # the key is shorter than than the new one and also exhaused
-                # we keep the old node
-                old_node = node[:]
-                # we get the new node
-                new_node = self._update(self._decode_to_node(node[1]), remaining_key, value)
-                # compare and see if they are equal
-                if old_node != new_node:
-                    # if not, delete the old node
-                    self._delete_node(old_node)
+                        [pack_nibbles(remaining_key[1:], True), value]
+                    )
             else:
                 # both keys have some differences, so we make a branch node
                 new_node = [BLANK_NODE] * 17
-                if len(remaining_curr_key) == 1:
-                    # there is no key left of the extension key, so we set the hash here
-                    new_node[remaining_curr_key[0]] = node[1]
-                else:
-                    # the remaining current key still has nibbles left, so we pack them to an extension node together :)
-                    # and save the result in the newly created branch node
-                    new_node[remaining_curr_key[0]], db_touch = self._encode_node([pack_nibbles(remaining_curr_key[1:], False), node[1]])
 
                 if len(remaining_key) == 0:
                     # if the remaining key is exhausted, we insert the value into our branch node
@@ -250,12 +217,25 @@ class Trie:
                     # otherwise we create a leaf node, where the value is stored
                     new_node[remaining_key[0]], db_touch = self._encode_node(
                         [pack_nibbles(remaining_key[1:], True), value])
+
+                if node_type == EXTENSION and len(remaining_curr_key) == 1:
+                    # there is no key left of the extension key, so we set the hash here
+                    new_node[remaining_curr_key[0]] = node[1]
+                else:
+                    # set terminator depending on the node type
+                    terminator = True if node_type == LEAF else False
+                    # saving the old path and value in a new leaf node
+                    new_node[remaining_curr_key[0]], db_touch = self._encode_node(
+                        [pack_nibbles(remaining_curr_key[1:], terminator), node[1]])
+
+            # in case there is a prefix set, because some parts of the path are equal we have to create a new extension
+            # node where the content is in
             if prefix:
                 n, db_touch = self._encode_node(new_node)
                 new_node = [pack_nibbles(current_key[:prefix], False), n]
             return new_node
 
-    def delete(self, key: bytes):
+    def delete(self, key: bytes) -> None:
         """
         Deletes a value which is under the given key
 
@@ -310,7 +290,7 @@ class Trie:
 
     def _decode_to_node(self, encoded: str) -> list:
         """
-        Takes an encoded paramter and decodes it to a node. The parameter might be an rlp encoded node or a hash of a
+        Takes an encoded parameter and decodes it to a node. The parameter might be an rlp encoded node or a hash of a
         node which is stored in the db.
 
         :param encoded: Node encoded in either rlp or by a hash
@@ -323,7 +303,6 @@ class Trie:
         return rlp.decode(self.db.get(encoded))
 
     def _delete(self, node: list, key: list):
-        old_node = node[:]
         node_type = self._get_node_type(node)
         if node_type == BLANK:
             return BLANK_NODE
