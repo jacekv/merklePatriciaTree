@@ -303,6 +303,13 @@ class Trie:
         return rlp.decode(self.db.get(encoded))
 
     def _delete(self, node: list, key: list):
+        """
+        Recursive delete function :)
+
+        :param node: List which is used to go down the rabbit hole
+        :param key: Path we are following
+        :return:
+        """
         node_type = self._get_node_type(node)
         if node_type == BLANK:
             return BLANK_NODE
@@ -316,8 +323,15 @@ class Trie:
         if node_type == EXTENSION:
             return self._delete_extension_node(node, key)
 
+    def _delete_branch_node(self, node: list, key: list) -> list:
+        """
+        Called when we have a branch node and check if we either follow the path or if we found value which is going
+        to be deleted.
 
-    def _delete_branch_node(self, node: list, key: list):
+        :param node: List which represents the branch node
+        :param key: A list of nibbles
+        :return: A list which represents a new node
+        """
         # if the key list is empty we set the value of the branch node to blank
         if not key:
             node[-1] = BLANK_NODE
@@ -338,7 +352,14 @@ class Trie:
 
         return node
 
-    def _delete_leaf_node(self, node, key):
+    def _delete_leaf_node(self, node: list, key: list) -> list:
+        """
+        Called when we have a leaf node.
+
+        :param node: List which represents the leaf node
+        :param key: A list of nibbles
+        :return: In case the leaf node has the key given key the blank node is returned, otherwise the node itself
+        """
         curr_key = unpack_to_nibbles(node[0])
 
         if not starts_with(key, curr_key):
@@ -347,17 +368,25 @@ class Trie:
 
         return BLANK_NODE if key == curr_key else node
 
+    def _delete_extension_node(self, node: list, key: list) -> list:
+        """
+        Called when we have a extension node.
 
-    def _delete_extension_node(self, node, key):
+        :param node: List which represents the extension node
+        :param key: A list of nibbles
+        :return: In case the leaf node has the key given key the blank node is returned, otherwise the node itself
+        """
         curr_key = unpack_to_nibbles(node[0])
 
         if not starts_with(key, curr_key):
             # key not found
             return node
 
-        # for inner key value type
+        # we take the key parts which overlap, decode the node which is within the extension node and
+        # call the delete function
         new_sub_node = self._delete(self._decode_to_node(node[1]), key[len(curr_key):])
 
+        # if the hash hasn't changed, just return the node
         if self._encode_node(new_sub_node) == node[1]:
             return node
 
@@ -365,11 +394,12 @@ class Trie:
         if new_sub_node == BLANK_NODE:
             return BLANK_NODE
 
-        # new sub node not blank, not value and has changed
+        # the hash has changed, therefore we check what type the subnode has
         new_sub_node_type = self._get_node_type(new_sub_node)
 
+        # if it is a leaf or extension node
         if is_key_value_type(new_sub_node_type):
-            # collape subnode to this node, not this node will have same
+            # collapse subnode to this node, note this node will have same
             # terminator with the new sub node, and value does not change
             new_key = curr_key + unpack_to_nibbles(new_sub_node[0])
             terminator = True if new_sub_node_type == LEAF else False
@@ -377,12 +407,17 @@ class Trie:
 
         if new_sub_node_type == BRANCH:
             n, db_touch = self._encode_node(new_sub_node)
-            terminator = True if db_touch else False
-            return [pack_nibbles(curr_key, terminator), n]
+            # creating a extension node
+            return [pack_nibbles(curr_key, False), n]
 
-    def _normalize_branch_node(self, node):
-        '''node should have only one item changed
-        '''
+    def _normalize_branch_node(self, node: list) -> list:
+        """
+        Takes a node and checks if the type has to be changed (e.g. from branch to leaf).
+
+        :param node: A list which represents the node
+        :return: A list which represents a node
+        """
+
         # count the blank nodes
         not_blank_items_count = sum(1 for x in range(17) if node[x])
 
@@ -401,7 +436,7 @@ class Trie:
         sub_node_type = self._get_node_type(sub_node)
 
         if is_key_value_type(sub_node_type):
-            # collape subnode to this node, not this node will have same
+            # collapse subnode to this node, not this node will have same
             # terminator with the new sub node, and value does not change
             new_key = [not_blank_index] + unpack_to_nibbles(sub_node[0])
             terminator = True if sub_node_type == LEAF else False
@@ -412,10 +447,13 @@ class Trie:
             # we pack it into an extension node
             return [pack_nibbles([not_blank_index], False), n]
 
-    def _delete_node(self, node):
-        '''delete storage
+    def _delete_node(self, node: list) -> None:
+        """
+        Deletes node from storage
+
         :param node: node in form of list, or BLANK_NODE
-        '''
+        :return: None
+        """
         node_type = self._get_node_type(node)
         if node_type == BLANK:
             return
@@ -427,19 +465,3 @@ class Trie:
             if len(encoded) < 32:
                 return
             self.db.delete(encoded)
-
-
-if __name__ == "__main__":
-    trie = Trie()
-
-    # should be 15da97c42b7ed2e1c0c8dab6a6d7e3d9dc0a75580bbc4f1f29c33996d1415dcc
-    correct = [b' \x01\x01\x02', b'\xc6\x85hello']  # that is the right way
-    # print(utils.sha3(rlp.encode(correct))) # this too
-    # should be 290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563
-    # correct = bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000000")
-    # correct = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    # print(correct)
-    # print(utils.sha3(rlp.encode(correct))) # this too
-
-    # check here for the result: https://github.com/ethereum/wiki/wiki/Patricia-Tree
-    # works
