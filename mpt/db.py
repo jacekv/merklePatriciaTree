@@ -1,37 +1,23 @@
+import plyvel
 
 class DB:
     __instance = None
-    db = {}
 
-    def __init__(self):
+    def __init__(self, path, create_if_missing=True):
         """
         Virtually private constructor.
         """
-        if DB.__instance != None:
-            raise Exception("This class is a singleton!")
-        else:
-            DB.__instance = self
-
-    @staticmethod
-    def get_instance():
-        """ Static access method. """
-        if DB.__instance == None:
-            DB()
-        return DB.__instance
+        if self.__instance == None:
+            self.__instance = plyvel.DB(path, create_if_missing=create_if_missing)
 
     def put(self, key, data):
-        self.db[key] = data
+        self.__instance.put(key, data)
 
     def get(self, key):
-        if key in self.db:
-            return self.db[key]
-        return None
+        return self.__instance.get(key)
 
     def delete(self, key):
-        if key in self.db:
-            del self.db[key]
+        self.__instance.delete(key)
 
-    def commit(self):
-        return
 
 

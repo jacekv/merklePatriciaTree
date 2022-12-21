@@ -85,11 +85,17 @@ def is_key_value_type(node_type: int) -> bool:
 
 class Trie:
 
-    def __init__(self, root_hash: str = BLANK_ROOT):
+    def __init__(self, path: str, root_hash: str = BLANK_ROOT):
+        """
+        Initializes a new Trie object
+
+        :param path (str): Path where to store the database
+        :param root_hash (str): Root hash of the trie 
+        """
         self.root_node = None
         self.root_hash = root_hash
         self.set_root_node(root_hash)
-        self.db = db.DB.get_instance()
+        self.db = db.DB('./testdb')
 
     def set_root_node(self, root_hash: str) -> None:
         """
