@@ -1,7 +1,12 @@
 from unittest import TestCase
 from mpt.trie import Trie
+from tests import DB_PATH
+from tests import delete_db_dir
 
 class TrieAnyOrder(TestCase):
+
+    def tearDown(self):
+        delete_db_dir()
 
     def test_singleItem(self):
         test = [
@@ -53,7 +58,7 @@ class TrieAnyOrder(TestCase):
         self.assertTrue(h.hex() == "285505fcabe84badc8aa310e2aae17eddc7d120aabec8a476902c8184b3a3503")
 
     def _feed_trie(self, test_data: list) -> bytes:
-        t = Trie()
+        t = Trie(DB_PATH)
         for data in test_data:
             if data[1]:
                 t.update(data[0], data[1])

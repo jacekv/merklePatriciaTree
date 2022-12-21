@@ -1,9 +1,14 @@
 from unittest import TestCase
 
 from mpt.trie import Trie
+from tests import DB_PATH
+from tests import delete_db_dir
 
 class TrieTest(TestCase):
 
+    def tearDown(self):
+        delete_db_dir()
+        
     def test_exampleTrie(self):
         test = [
             [b"do", b"verb"],  # ok
@@ -132,7 +137,7 @@ class TrieTest(TestCase):
         self.assertTrue(h.hex() == '9f6221ebb8efe7cff60a716ecb886e67dd042014be444669f0159d8e68b42100')
 
     def _feed_trie(self, test_data: list) -> bytes:
-        t = Trie()
+        t = Trie(DB_PATH)
         for data in test_data:
             if data[1]:
                 t.update(data[0], data[1])

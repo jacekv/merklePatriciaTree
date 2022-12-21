@@ -2,9 +2,13 @@ from unittest import TestCase
 
 from mpt.trie import Trie
 from sha3 import keccak_256
-
+from tests import DB_PATH
+from tests import delete_db_dir
 
 class TrieTest(TestCase):
+
+    def tearDown(self):
+        delete_db_dir()
 
     def test_emptyValue(self):
         test = [
@@ -77,7 +81,7 @@ class TrieTest(TestCase):
         self.assertTrue(h.hex() == '56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421')
 
     def _feed_trie(self, test_data: list) -> bytes:
-        t = Trie()
+        t = Trie(DB_PATH)
         for data in test_data:
             if data[1]:
                 t.update(data[0], data[1])
