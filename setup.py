@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(
-    name='merklePatriciaTrie',
+    name='ethereum-merkle-patricia-trie',
     packages=['mpt'],
-    version='0.1',
+    version='0.0.1',
     description='Pure Python 3 Merkle Patricia Trie implementation',
     url='https://github.com/jacekv/merklePatriciaTree',
     author='Jacek Varky',
