@@ -110,7 +110,7 @@ class Trie:
         else:
             self.root_node = db.get(root_hash)
 
-    def update(self, key: bytes, value: str) -> None:
+    def update(self, key: bytes, value: bytes) -> None:
         """
         Takes a key/value pair and adds the value in the appropriate location in the trie
 
@@ -127,6 +127,54 @@ class Trie:
             raise Exception("Value must be bytes")
 
         self.root_node = self._update(self.root_node, bin_to_nibbles(key), value)
+
+    def get_node(self, key: bytes) -> bytes:
+        """
+        Takes a key and returns the value stored under that key. If there is no
+        value, empty bytes are returned.
+
+        :param key: bytes with length <= 32
+        """
+        if not isinstance(key, bytes):
+            raise Exception("Key must be of type bytes")
+
+        if len(key) > 32:
+            raise Exception("Max key length is 32")
+        return self._get_node(self.root_node, bin_to_nibbles(key))
+
+    def _get_node(self, node: bytes, key: list) -> bytes:
+        """
+        Takes a key and returns the value stored under that key. If there is no
+        value, empty bytes are returned.
+
+        :param node: List which is used to go down the rabbit hole
+        :param key: List of key nibbles
+        """
+        node_type = self._get_node_type(node)
+        if node_type == BLANK:
+            return BLANK_NODE
+
+        if node_type == BRANCH:
+            if not key:
+                return node[-1]
+            return self._get_node(self._decode_to_node(node[key[0]]), key[1:])
+
+        if node_type == LEAF:
+            curr_key = unpack_to_nibbles(node[0])
+            # If the key does not match with the given key, we return None
+            if not starts_with(key, curr_key):
+                return None
+
+            # returning value if key match, otherwise the blank node
+            return node[1] if key == curr_key else BLANK_NODE
+
+        if node_type == EXTENSION:
+            curr_key = unpack_to_nibbles(node[0])
+            # If the key does not match with the given key, we return None
+            if not starts_with(key, curr_key):
+                return None
+            return self._get_node(self._decode_to_node(node[1]), key[len(curr_key):])
+            
 
     def get_root_hash(self) -> bytes:
         """
