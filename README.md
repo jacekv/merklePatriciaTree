@@ -1,5 +1,15 @@
 In order to understand Ethereum's core functionalities, I am implementing parts of it for myself. Here I am implementing
-the Merkle Patrie Trie (MPT) purley in Python 3.
+the Merkle Patricia Trie (MPT) purely in Python 3.
+
+## Install
+
+```shell
+pip install mpt
+```
+
+## Requirements
+
+In order to use the package, you need to install LevelDb on your system.
 
 ## Tests
 
