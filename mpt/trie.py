@@ -128,7 +128,7 @@ class Trie:
 
         self.root_node = self._update(self.root_node, bin_to_nibbles(key), value)
 
-    def get_node(self, key: bytes) -> bytes:
+    def get_value(self, key: bytes) -> bytes:
         """
         Takes a key and returns the value stored under that key. If there is no
         value, empty bytes are returned.
@@ -140,9 +140,9 @@ class Trie:
 
         if len(key) > 32:
             raise Exception("Max key length is 32")
-        return self._get_node(self.root_node, bin_to_nibbles(key))
+        return self._get_value(self.root_node, bin_to_nibbles(key))
 
-    def _get_node(self, node: bytes, key: list) -> bytes:
+    def _get_value(self, node: bytes, key: list) -> bytes:
         """
         Takes a key and returns the value stored under that key. If there is no
         value, empty bytes are returned.
