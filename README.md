@@ -26,7 +26,7 @@ from mpt.trie import Trie
 t = Trie('./testdb')
 t.update(b'abcd', b'hello world')
 
-print(t.get(b'abcd'))
+print(t.get_value(b'abcd'))
 
 print(t.get_root_hash())
 
