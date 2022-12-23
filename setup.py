@@ -1,10 +1,15 @@
 from setuptools import setup
 
+readme = open('README.md', 'r')
+content = readme.read()
+readme.close()
+
 setup(
     name='ethereum-merkle-patricia-trie',
     packages=['mpt'],
-    version='0.0.1',
+    version='0.0.2',
     description='Pure Python 3 Merkle Patricia Trie implementation',
+    long_description=content,
     url='https://github.com/jacekv/merklePatriciaTree',
     author='Jacek Varky',
     author_email='jaca347@gmail.com',

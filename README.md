@@ -20,31 +20,30 @@ $ python -m unittest
 ## Usage
 
 Here an example on how to use the package:
-```python
-from mpt.trie import Trie
 
-t = Trie('./testdb')
-t.update(b'abcd', b'hello world')
 
-print(t.get_value(b'abcd'))
+    from mpt.trie import Trie
 
-print(t.get_root_hash())
+    t = Trie('./testdb')
+    t.update(b'abcd', b'hello world')
 
-t.delete(b'abcd')
-```
+    print(t.get_value(b'abcd'))
+
+    print(t.get_root_hash())
+
+    t.delete(b'abcd')
+
 
 ## Upload to Pypi
 
 Uploading and testing using test Pypi
 
-```shell
-python -m build
-python -m twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ --no-deps merklePatriciaTrie   
-```
+    python -m build
+    python -m twine upload --repository testpypi dist/*
+    pip install --index-url https://test.pypi.org/simple/ --no-deps merklePatriciaTrie   
+
 
 Uploading to Pypi
-```shell
-python -m build
-python -m twine upload dist/*
-```
+
+    python -m build
+    python -m twine upload dist/*
