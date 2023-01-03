@@ -5,8 +5,8 @@ from sha3 import keccak_256
 from tests import DB_PATH
 from tests import delete_db_dir
 
-class TrieTest(TestCase):
 
+class TrieTest(TestCase):
     def tearDown(self):
         delete_db_dir()
 
@@ -17,12 +17,15 @@ class TrieTest(TestCase):
             [keccak_256(b"horse").digest(), b"stallion"],
             [keccak_256(b"shaman").digest(), b"horse"],
             [keccak_256(b"doge").digest(), b"coin"],
-            [keccak_256(b"ether").digest(), ''],
+            [keccak_256(b"ether").digest(), ""],
             [keccak_256(b"dog").digest(), b"puppy"],
-            [keccak_256(b"shaman").digest(), '']
+            [keccak_256(b"shaman").digest(), ""],
         ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '29b235a58c3c25ab83010c327d5932bcf05324b7d6b1185e650798034783ca9d')
+        self.assertTrue(
+            h.hex()
+            == "29b235a58c3c25ab83010c327d5932bcf05324b7d6b1185e650798034783ca9d"
+        )
 
     def test_branching(self):
         test = [
@@ -75,10 +78,13 @@ class TrieTest(TestCase):
             [bytes.fromhex("aae4a2e3c51c04606dcb3723456e58f3ed214f45"), b""],
             [bytes.fromhex("c37a43e940dfb5baf581a0b82b351d48305fc885"), b""],
             [bytes.fromhex("d2571607e241ecf590ed94b12d87c94babe36db6"), b""],
-            [bytes.fromhex("f735071cbee190d76b704ce68384fc21e389fbe7"), b""]
+            [bytes.fromhex("f735071cbee190d76b704ce68384fc21e389fbe7"), b""],
         ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421')
+        self.assertTrue(
+            h.hex()
+            == "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+        )
 
     def _feed_trie(self, test_data: list) -> bytes:
         t = Trie(DB_PATH)

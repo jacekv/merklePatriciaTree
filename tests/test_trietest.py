@@ -4,20 +4,23 @@ from mpt.trie import Trie
 from tests import DB_PATH
 from tests import delete_db_dir
 
-class TrieTest(TestCase):
 
+class TrieTest(TestCase):
     def tearDown(self):
         delete_db_dir()
-        
+
     def test_exampleTrie(self):
         test = [
             [b"do", b"verb"],  # ok
-            [b'dog', b'puppy'],
-            [b'doge', b'coin'],
-            [b'horse', b'stallion']
+            [b"dog", b"puppy"],
+            [b"doge", b"coin"],
+            [b"horse", b"stallion"],
         ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84')
+        self.assertTrue(
+            h.hex()
+            == "5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84"
+        )
 
     def test_emptyValue(self):
         test = [
@@ -26,32 +29,38 @@ class TrieTest(TestCase):
             [b"horse", b"stallion"],
             [b"shaman", b"horse"],
             [b"doge", b"coin"],
-            [b"ether", ''],
+            [b"ether", ""],
             [b"dog", b"puppy"],
-            [b"shaman", '']
+            [b"shaman", ""],
         ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84')
+        self.assertTrue(
+            h.hex()
+            == "5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84"
+        )
 
     def test_branchValueUpdate(self):
-        test = [
-            [b"abc", b"123"],
-            [b"abcd", b"abcd"],
-            [b"abc", b"abc"]
-        ]
+        test = [[b"abc", b"123"], [b"abcd", b"abcd"], [b"abc", b"abc"]]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '7a320748f780ad9ad5b0837302075ce0eeba6c26e3d8562c67ccc0f1b273298a')
+        self.assertTrue(
+            h.hex()
+            == "7a320748f780ad9ad5b0837302075ce0eeba6c26e3d8562c67ccc0f1b273298a"
+        )
 
     def test_insertMiddleLeaf(self):
-        test = [[b"key1aa", b"0123456789012345678901234567890123456789xxx"],
-                [b"key1", b"0123456789012345678901234567890123456789Very_Long"],
-                [b"key2bb", b"aval3"],
-                [b"key2", b"short"],
-                [b"key3cc", b"aval3"],
-                [b"key3", b"1234567890123456789012345678901"]
-                ]
+        test = [
+            [b"key1aa", b"0123456789012345678901234567890123456789xxx"],
+            [b"key1", b"0123456789012345678901234567890123456789Very_Long"],
+            [b"key2bb", b"aval3"],
+            [b"key2", b"short"],
+            [b"key3cc", b"aval3"],
+            [b"key3", b"1234567890123456789012345678901"],
+        ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == 'cb65032e2f76c48b82b5c24b3db8f670ce73982869d38cd39a624f23d62a9e89')
+        self.assertTrue(
+            h.hex()
+            == "cb65032e2f76c48b82b5c24b3db8f670ce73982869d38cd39a624f23d62a9e89"
+        )
 
     def test_branching(self):
         test = [
@@ -104,37 +113,96 @@ class TrieTest(TestCase):
             [bytes.fromhex("aae4a2e3c51c04606dcb3723456e58f3ed214f45"), b""],
             [bytes.fromhex("c37a43e940dfb5baf581a0b82b351d48305fc885"), b""],
             [bytes.fromhex("d2571607e241ecf590ed94b12d87c94babe36db6"), b""],
-            [bytes.fromhex("f735071cbee190d76b704ce68384fc21e389fbe7"), b""]
+            [bytes.fromhex("f735071cbee190d76b704ce68384fc21e389fbe7"), b""],
         ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421')
+        self.assertTrue(
+            h.hex()
+            == "56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+        )
 
     def test_jeff(self):
         test = [
-            [bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000045"),
-             bytes.fromhex("22b224a1420a802ab51d326e29fa98e34c4f24ea")],
-            [bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000046"),
-             bytes.fromhex("67706c2076330000000000000000000000000000000000000000000000000000")],
-            [bytes.fromhex("0000000000000000000000000000000000000000000000000000001234567890"),
-             bytes.fromhex("697c7b8c961b56f675d570498424ac8de1a918f6")],
-            [bytes.fromhex("000000000000000000000000697c7b8c961b56f675d570498424ac8de1a918f6"),
-             bytes.fromhex("1234567890")],
-            [bytes.fromhex("0000000000000000000000007ef9e639e2733cb34e4dfc576d4b23f72db776b2"),
-             bytes.fromhex("4655474156000000000000000000000000000000000000000000000000000000")],
-            [bytes.fromhex("000000000000000000000000ec4f34c97e43fbb2816cfd95e388353c7181dab1"),
-             bytes.fromhex("4e616d6552656700000000000000000000000000000000000000000000000000")],
-            [bytes.fromhex("4655474156000000000000000000000000000000000000000000000000000000"),
-             bytes.fromhex("7ef9e639e2733cb34e4dfc576d4b23f72db776b2")],
-            [bytes.fromhex("4e616d6552656700000000000000000000000000000000000000000000000000"),
-             bytes.fromhex("ec4f34c97e43fbb2816cfd95e388353c7181dab1")],
-            [bytes.fromhex("0000000000000000000000000000000000000000000000000000001234567890"), b""],
-            [bytes.fromhex("000000000000000000000000697c7b8c961b56f675d570498424ac8de1a918f6"),
-             bytes.fromhex("6f6f6f6820736f2067726561742c207265616c6c6c793f000000000000000000")],
-            [bytes.fromhex("6f6f6f6820736f2067726561742c207265616c6c6c793f000000000000000000"),
-             bytes.fromhex("697c7b8c961b56f675d570498424ac8de1a918f6")]
+            [
+                bytes.fromhex(
+                    "0000000000000000000000000000000000000000000000000000000000000045"
+                ),
+                bytes.fromhex("22b224a1420a802ab51d326e29fa98e34c4f24ea"),
+            ],
+            [
+                bytes.fromhex(
+                    "0000000000000000000000000000000000000000000000000000000000000046"
+                ),
+                bytes.fromhex(
+                    "67706c2076330000000000000000000000000000000000000000000000000000"
+                ),
+            ],
+            [
+                bytes.fromhex(
+                    "0000000000000000000000000000000000000000000000000000001234567890"
+                ),
+                bytes.fromhex("697c7b8c961b56f675d570498424ac8de1a918f6"),
+            ],
+            [
+                bytes.fromhex(
+                    "000000000000000000000000697c7b8c961b56f675d570498424ac8de1a918f6"
+                ),
+                bytes.fromhex("1234567890"),
+            ],
+            [
+                bytes.fromhex(
+                    "0000000000000000000000007ef9e639e2733cb34e4dfc576d4b23f72db776b2"
+                ),
+                bytes.fromhex(
+                    "4655474156000000000000000000000000000000000000000000000000000000"
+                ),
+            ],
+            [
+                bytes.fromhex(
+                    "000000000000000000000000ec4f34c97e43fbb2816cfd95e388353c7181dab1"
+                ),
+                bytes.fromhex(
+                    "4e616d6552656700000000000000000000000000000000000000000000000000"
+                ),
+            ],
+            [
+                bytes.fromhex(
+                    "4655474156000000000000000000000000000000000000000000000000000000"
+                ),
+                bytes.fromhex("7ef9e639e2733cb34e4dfc576d4b23f72db776b2"),
+            ],
+            [
+                bytes.fromhex(
+                    "4e616d6552656700000000000000000000000000000000000000000000000000"
+                ),
+                bytes.fromhex("ec4f34c97e43fbb2816cfd95e388353c7181dab1"),
+            ],
+            [
+                bytes.fromhex(
+                    "0000000000000000000000000000000000000000000000000000001234567890"
+                ),
+                b"",
+            ],
+            [
+                bytes.fromhex(
+                    "000000000000000000000000697c7b8c961b56f675d570498424ac8de1a918f6"
+                ),
+                bytes.fromhex(
+                    "6f6f6f6820736f2067726561742c207265616c6c6c793f000000000000000000"
+                ),
+            ],
+            [
+                bytes.fromhex(
+                    "6f6f6f6820736f2067726561742c207265616c6c6c793f000000000000000000"
+                ),
+                bytes.fromhex("697c7b8c961b56f675d570498424ac8de1a918f6"),
+            ],
         ]
         h = self._feed_trie(test)
-        self.assertTrue(h.hex() == '9f6221ebb8efe7cff60a716ecb886e67dd042014be444669f0159d8e68b42100')
+        self.assertTrue(
+            h.hex()
+            == "9f6221ebb8efe7cff60a716ecb886e67dd042014be444669f0159d8e68b42100"
+        )
 
     def _feed_trie(self, test_data: list) -> bytes:
         t = Trie(DB_PATH)

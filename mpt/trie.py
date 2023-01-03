@@ -1,8 +1,8 @@
 import rlp
 from mpt import db, utils
 
-BLANK_ROOT = ''
-BLANK_NODE = b''
+BLANK_ROOT = ""
+BLANK_NODE = b""
 
 # node types
 (BLANK, BRANCH, LEAF, EXTENSION) = tuple(range(4))
@@ -70,7 +70,7 @@ def starts_with(full: list, part: list) -> bool:
     """
     if len(full) < len(part):
         return False
-    return full[:len(part)] == part
+    return full[: len(part)] == part
 
 
 def is_key_value_type(node_type: int) -> bool:
@@ -84,18 +84,17 @@ def is_key_value_type(node_type: int) -> bool:
 
 
 class Trie:
-
     def __init__(self, path: str, root_hash: str = BLANK_ROOT):
         """
         Initializes a new Trie object
 
         :param path (str): Path where to store the database
-        :param root_hash (str): Root hash of the trie 
+        :param root_hash (str): Root hash of the trie
         """
         self.root_node = None
         self.root_hash = root_hash
         self.set_root_node(root_hash)
-        self.db = db.DB('./testdb')
+        self.db = db.DB("./testdb")
 
     def set_root_node(self, root_hash: str) -> None:
         """
@@ -173,8 +172,7 @@ class Trie:
             # If the key does not match with the given key, we return None
             if not starts_with(key, curr_key):
                 return None
-            return self._get_node(self._decode_to_node(node[1]), key[len(curr_key):])
-            
+            return self._get_node(self._decode_to_node(node[1]), key[len(curr_key) :])
 
     def get_root_hash(self) -> bytes:
         """
@@ -208,7 +206,9 @@ class Trie:
             else:
                 # otherwise decode the node at the position key[0] in the branch node and go further down the
                 # rabbit whole
-                new_node = self._update(self._decode_to_node(node[key[0]]), key[1:], value)
+                new_node = self._update(
+                    self._decode_to_node(node[key[0]]), key[1:], value
+                )
                 node[key[0]], db_touch = self._encode_node(new_node)
             return node
 
@@ -235,7 +235,9 @@ class Trie:
                 if node_type == EXTENSION:
                     # Since we currently have a branch node, we decode the hash to the node and go one level deeper
                     # to update the value of the branch node
-                    new_node = self._update(self._decode_to_node(node[1]), remaining_key, value)
+                    new_node = self._update(
+                        self._decode_to_node(node[1]), remaining_key, value
+                    )
                 else:
                     # Since we have currently a leaf node, we update the value :)
                     return [node[0], value]
@@ -245,7 +247,9 @@ class Trie:
                     # we save the old node
                     old_node = node[:]
                     # we get the new node
-                    new_node = self._update(self._decode_to_node(node[1]), remaining_key, value)
+                    new_node = self._update(
+                        self._decode_to_node(node[1]), remaining_key, value
+                    )
                     # compare and see if they are equal
                     if old_node != new_node:
                         # if not, delete the old node
@@ -270,7 +274,8 @@ class Trie:
                 else:
                     # otherwise we create a leaf node, where the value is stored
                     new_node[remaining_key[0]], db_touch = self._encode_node(
-                        [pack_nibbles(remaining_key[1:], True), value])
+                        [pack_nibbles(remaining_key[1:], True), value]
+                    )
 
                 if node_type == EXTENSION and len(remaining_curr_key) == 1:
                     # there is no key left of the extension key, so we set the hash here
@@ -280,7 +285,8 @@ class Trie:
                     terminator = True if node_type == LEAF else False
                     # saving the old path and value in a new leaf node
                     new_node[remaining_curr_key[0]], db_touch = self._encode_node(
-                        [pack_nibbles(remaining_curr_key[1:], terminator), node[1]])
+                        [pack_nibbles(remaining_curr_key[1:], terminator), node[1]]
+                    )
 
             # in case there is a prefix set, because some parts of the path are equal we have to create a new extension
             # node where the content is in
@@ -438,7 +444,7 @@ class Trie:
 
         # we take the key parts which overlap, decode the node which is within the extension node and
         # call the delete function
-        new_sub_node = self._delete(self._decode_to_node(node[1]), key[len(curr_key):])
+        new_sub_node = self._delete(self._decode_to_node(node[1]), key[len(curr_key) :])
 
         # if the hash hasn't changed, just return the node
         if self._encode_node(new_sub_node) == node[1]:

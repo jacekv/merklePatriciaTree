@@ -1,5 +1,6 @@
 import plyvel
 
+
 class DB:
     __instance = None
 
@@ -18,6 +19,3 @@ class DB:
 
     def delete(self, key):
         self.__instance.delete(key)
-
-
-
