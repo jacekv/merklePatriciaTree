@@ -10,6 +10,7 @@ setup(
     version='0.0.2',
     description='Pure Python 3 Merkle Patricia Trie implementation',
     long_description=content,
+    long_description_content_type='text/markdown',
     url='https://github.com/jacekv/merklePatriciaTree',
     author='Jacek Varky',
     author_email='jaca347@gmail.com',
