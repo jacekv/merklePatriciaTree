@@ -47,3 +47,17 @@ Uploading to Pypi
 
     python -m build
     python -m twine upload dist/*
+
+## Contributions
+
+Create a new virtual environment and install all dependencies:
+```bash
+python3 -m virtualenv --python /path/to/python3 venv
+source ./venv/bin/activate
+pip install -r requirements.txt
+```
+
+Install the pre-commit hooks using the following command:
+```bash
+pre-commit install
+```
